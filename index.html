@@ -112,6 +112,7 @@
             generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>生成中...';
 
             try {
+                console.log('开始发送API请求...');
                 const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: {
@@ -120,17 +121,22 @@
                     body: JSON.stringify({ intro })
                 });
 
+                console.log('API响应状态:', response.status);
+                
                 if (!response.ok) {
-                    throw new Error('生成失败');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || '生成失败');
                 }
 
                 const data = await response.json();
+                console.log('获取到卡片数据');
                 cardContainer.innerHTML = data.html;
                 
                 // 隐藏加载状态，显示结果
                 loadingState.classList.add('hidden');
                 resultDiv.classList.remove('hidden');
             } catch (error) {
+                console.error('生成卡片错误:', error);
                 alert('生成失败：' + error.message);
                 // 恢复初始状态
                 loadingState.classList.add('hidden');
