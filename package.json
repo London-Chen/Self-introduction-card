@@ -1,0 +1,23 @@
+{
+  "name": "self-introduction-card",
+  "version": "1.0.0",
+  "description": "AI-powered self-introduction card generator",
+  "main": "server.js",
+  "engines": {
+    "node": ">=14.x"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "ai",
+    "card",
+    "generator",
+    "self-introduction"
+  ],
+  "author": "London-Chen",
+  "license": "MIT",
+  "dependencies": {
+  }
+} 
