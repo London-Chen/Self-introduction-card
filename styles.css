@@ -1,0 +1,161 @@
+body {
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f9f9f9;
+}
+
+/* 卡片基础样式 */
+.card {
+    width: 375px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-content {
+    padding: 24px;
+}
+
+.card-title {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.card-text {
+    line-height: 1.6;
+    color: #4a5568;
+}
+
+/* 加载动画 */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* 加载圆圈动画 */
+.loader-circle {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(0, 122, 255, 0.1);
+    border-top: 3px solid #007aff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* 苹果风格UI元素 */
+.rounded-xl {
+    border-radius: 12px;
+}
+
+.shadow-sm {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* 渐变按钮效果 */
+.bg-gradient-to-r {
+    transition: all 0.3s ease;
+}
+
+.bg-gradient-to-r:hover {
+    transform: translateY(-1px);
+}
+
+.bg-gradient-to-r:active {
+    transform: translateY(1px);
+}
+
+/* 美化滚动条 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* 过渡效果 */
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+/* 平滑过渡 */
+.hidden {
+    display: none !important;
+}
+
+/* 二维码容器 */
+.qrcode-container {
+    transition: transform 0.3s ease;
+}
+
+.qrcode-container:hover {
+    transform: scale(1.02);
+}
+
+/* 固定布局相关 */
+@media (min-width: 1024px) {
+    /* lg屏幕及以上 */
+    body {
+        overflow-x: hidden; /* 防止水平滚动条 */
+    }
+    
+    /* 确保内容不被侧边栏遮挡 */
+    .lg\:mr-72 {
+        margin-right: 18rem;
+    }
+    
+    /* 确保侧边栏始终可见 */
+    aside {
+        position: fixed;
+        right: 0;
+        top: 0;
+        height: 100vh;
+        z-index: 10;
+    }
+}
+
+/* 微信二维码样式 */
+.qrcode-container img {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+}
+
+.qrcode-container img:hover {
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+/* 居中布局辅助类 */
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* 响应式内容宽度 */
+@media (max-width: 768px) {
+    .max-w-5xl {
+        max-width: 90%; /* 在小屏幕上减少主容器宽度 */
+    }
+} 
