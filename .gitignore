@@ -23,4 +23,7 @@ yarn.lock
 Thumbs.db
 
 # 日志文件
-*.log 
+*.log
+
+# Vercel
+.vercel 
