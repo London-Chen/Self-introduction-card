@@ -29,7 +29,8 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('未处理的Promise拒绝:', reason);
 });
 
-const server = http.createServer(async (req, res) => {
+// 创建处理请求的函数
+const handleRequest = async (req, res) => {
     try {
         console.log(`收到请求: ${req.method} ${req.url}`);
 
@@ -197,6 +198,7 @@ ${intro}
             return;
         }
 
+        // 对于其他请求，返回404
         res.writeHead(404);
         res.end('Not found');
     } catch (error) {
@@ -204,16 +206,24 @@ ${intro}
         res.writeHead(500);
         res.end('Internal Server Error');
     }
-});
+};
 
-server.on('error', (error) => {
-    console.error('服务器错误:', error);
-    if (error.code === 'EADDRINUSE') {
-        console.error(`端口 ${PORT} 已被占用`);
-    }
-});
+// 为本地开发创建HTTP服务器
+if (process.env.NODE_ENV !== 'production') {
+    const server = http.createServer(handleRequest);
 
-server.listen(PORT, () => {
-    console.log(`服务器启动成功，监听端口 ${PORT}`);
-    console.log(`请访问 http://localhost:${PORT}/`);
-}); 
+    server.on('error', (error) => {
+        console.error('服务器错误:', error);
+        if (error.code === 'EADDRINUSE') {
+            console.error(`端口 ${PORT} 已被占用`);
+        }
+    });
+
+    server.listen(PORT, () => {
+        console.log(`服务器启动成功，监听端口 ${PORT}`);
+        console.log(`请访问 http://localhost:${PORT}/`);
+    });
+}
+
+// 导出函数，供Vercel使用
+module.exports = handleRequest; 
