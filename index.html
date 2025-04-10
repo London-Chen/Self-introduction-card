@@ -96,6 +96,31 @@
         const initialState = document.getElementById('initialState');
         const cardContainer = document.getElementById('cardContainer');
 
+        // 检查API是否可用
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch('/api');
+                if (response.ok) {
+                    console.log('API服务正常');
+                    return true;
+                } else {
+                    console.error('API服务异常:', response.status);
+                    return false;
+                }
+            } catch (error) {
+                console.error('API服务检查失败:', error);
+                return false;
+            }
+        }
+
+        // 页面加载完成后检查API
+        window.addEventListener('DOMContentLoaded', async () => {
+            const apiStatus = await checkAPIStatus();
+            if (!apiStatus) {
+                console.warn('API服务不可用，部分功能可能无法使用');
+            }
+        });
+
         generateBtn.addEventListener('click', async () => {
             const intro = introInput.value.trim();
             if (!intro) {
@@ -124,12 +149,31 @@
                 console.log('API响应状态:', response.status);
                 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || '生成失败');
+                    let errorMessage = '生成失败';
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.error || errorMessage;
+                    } catch (e) {
+                        console.error('解析错误响应失败:', e);
+                        // 如果无法解析JSON，使用状态码和状态文本
+                        errorMessage = `服务器返回: ${response.status} ${response.statusText}`;
+                    }
+                    throw new Error(errorMessage);
                 }
 
-                const data = await response.json();
+                let data;
+                try {
+                    data = await response.json();
+                } catch (e) {
+                    console.error('解析JSON响应失败:', e);
+                    throw new Error('无法解析服务器响应');
+                }
+
                 console.log('获取到卡片数据');
+                if (!data.html) {
+                    throw new Error('服务器返回的数据格式不正确');
+                }
+                
                 cardContainer.innerHTML = data.html;
                 
                 // 隐藏加载状态，显示结果

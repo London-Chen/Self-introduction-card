@@ -1,10 +1,5 @@
 // 导入必要的模块
 const https = require('https');
-const serverless = require('./_serverless');
-require('dotenv').config();
-
-// 从环境变量获取API密钥（通过_serverless.js已经加载）
-const API_KEY = process.env.DEEPSEEK_API_KEY;
 
 // 处理请求的函数
 module.exports = async (req, res) => {
@@ -15,8 +10,7 @@ module.exports = async (req, res) => {
 
     // 处理OPTIONS请求
     if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
+        return res.status(200).end();
     }
 
     // 只处理POST请求
@@ -25,18 +19,20 @@ module.exports = async (req, res) => {
     }
 
     try {
-        console.log('API环境变量:', { 
-            apiKeyExists: !!process.env.DEEPSEEK_API_KEY,
-            apiKeyPrefix: process.env.DEEPSEEK_API_KEY ? process.env.DEEPSEEK_API_KEY.substring(0, 10) + '...' : 'undefined'
-        });
+        // 从环境变量获取API密钥
+        const API_KEY = process.env.DEEPSEEK_API_KEY;
         
+        if (!API_KEY) {
+            console.error('API密钥未设置');
+            return res.status(500).json({ error: 'API密钥未设置，请联系管理员' });
+        }
+
+        // 解析请求体
         const { intro } = req.body;
         
         if (!intro) {
             return res.status(400).json({ error: '缺少自我介绍内容' });
         }
-
-        console.log('处理自我介绍请求:', intro.substring(0, 30) + '...');
 
         // 构建提示词
         const prompt = `你是一个专业的自我介绍卡片设计师。请根据以下内容生成一个HTML卡片。要求：
@@ -57,70 +53,8 @@ ${intro}
 
 请直接返回HTML代码，不要有任何其他文字说明。生成的代码将直接嵌入到网页中显示。`;
 
-        console.log('开始调用DeepSeek API');
         // 调用DeepSeek API
-        const response = await new Promise((resolve, reject) => {
-            const options = {
-                hostname: 'api.deepseek.com',
-                path: '/chat/completions',
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${API_KEY}`
-                }
-            };
-
-            console.log('API请求配置:', { 
-                hostname: options.hostname,
-                path: options.path,
-                method: options.method
-            });
-
-            const apiReq = https.request(options, (apiRes) => {
-                let data = '';
-                apiRes.on('data', chunk => {
-                    data += chunk;
-                });
-                apiRes.on('end', () => {
-                    try {
-                        console.log('API状态码:', apiRes.statusCode);
-                        const parsedData = JSON.parse(data);
-                        if (apiRes.statusCode !== 200) {
-                            console.error('API错误响应:', parsedData);
-                            reject(new Error(parsedData.error?.message || 'API请求失败'));
-                        } else {
-                            resolve(parsedData);
-                        }
-                    } catch (error) {
-                        console.error('解析API响应失败:', error);
-                        reject(new Error('解析API响应失败'));
-                    }
-                });
-            });
-
-            apiReq.on('error', (error) => {
-                console.error('API请求错误:', error);
-                reject(new Error(`API请求错误: ${error.message}`));
-            });
-
-            const requestData = {
-                model: 'deepseek-chat',
-                messages: [
-                    {
-                        role: 'system',
-                        content: '你是一个专业的自我介绍卡片设计师，只返回HTML代码，不要包含任何解释或描述。确保使用Font Awesome图标库增强视觉效果。'
-                    },
-                    {
-                        role: 'user',
-                        content: prompt
-                    }
-                ],
-                stream: false
-            };
-
-            apiReq.write(JSON.stringify(requestData));
-            apiReq.end();
-        });
+        const response = await callDeepSeekAPI(API_KEY, prompt);
 
         // 从API响应中提取HTML代码，移除所有非HTML内容
         let html = response.choices[0].message.content;
@@ -130,10 +64,65 @@ ${intro}
         html = html.replace(/.*?<!DOCTYPE html>/is, '<!DOCTYPE html>'); // 移除开头的描述文字
         html = html.replace(/<\/html>[\s\S]*/i, '</html>'); // 移除结尾的描述文字
         
-        console.log('成功生成HTML卡片');
         return res.status(200).json({ html });
     } catch (error) {
         console.error('处理请求时发生错误:', error);
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: error.message || '服务器内部错误' });
     }
-}; 
+};
+
+// 调用DeepSeek API的辅助函数
+async function callDeepSeekAPI(apiKey, prompt) {
+    return new Promise((resolve, reject) => {
+        const options = {
+            hostname: 'api.deepseek.com',
+            path: '/chat/completions',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            }
+        };
+
+        const apiReq = https.request(options, (apiRes) => {
+            let data = '';
+            apiRes.on('data', chunk => {
+                data += chunk;
+            });
+            apiRes.on('end', () => {
+                try {
+                    const parsedData = JSON.parse(data);
+                    if (apiRes.statusCode !== 200) {
+                        reject(new Error(parsedData.error?.message || 'API请求失败'));
+                    } else {
+                        resolve(parsedData);
+                    }
+                } catch (error) {
+                    reject(new Error('解析API响应失败'));
+                }
+            });
+        });
+
+        apiReq.on('error', (error) => {
+            reject(new Error(`API请求错误: ${error.message}`));
+        });
+
+        const requestData = {
+            model: 'deepseek-chat',
+            messages: [
+                {
+                    role: 'system',
+                    content: '你是一个专业的自我介绍卡片设计师，只返回HTML代码，不要包含任何解释或描述。确保使用Font Awesome图标库增强视觉效果。'
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            stream: false
+        };
+
+        apiReq.write(JSON.stringify(requestData));
+        apiReq.end();
+    });
+} 
